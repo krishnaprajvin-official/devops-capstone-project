@@ -103,4 +103,3 @@ class TestAccountService(TestCase):
         # Check the data is correct
         new_account = response.get_json()
         self.assertEqual(new_account["name"], account.name)
-
