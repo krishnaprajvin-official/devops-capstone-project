@@ -1,9 +1,3 @@
-#
-# This pipeline needs the following tasks from Tekton Hub
-#   - git-clone
-#   - flake8
-#
----
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:  
@@ -15,6 +9,7 @@ spec:
     - name: repo-url
     - name: branch
       default: main
+    - name: build-image  # Add this line to define the build-image parameter
   tasks:
     - name: init
       workspaces:
@@ -50,6 +45,7 @@ spec:
         value: ["--count","--max-complexity=10","--max-line-length=127","--statistics"]
       runAfter:
         - clone
+
     - name: tests
       workspaces:
         - name: source
@@ -63,3 +59,17 @@ spec:
         value: "-v --with-spec --spec-color"
       runAfter:
         - clone
+
+    - name: build
+      workspaces:
+        - name: source
+          workspace: pipeline-workspace
+      taskRef:
+        name: buildah
+        kind: ClusterTask
+      params:
+      - name: IMAGE
+        value: "$(params.build-image)"
+      runAfter:
+        - tests
+        - lint
